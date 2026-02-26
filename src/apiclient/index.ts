@@ -12,9 +12,9 @@ const constructBaseApiParams = (): BaseApiParams => {
 const constructClient = () => {
   const baseApiParams = constructBaseApiParams();
 
-  // Base URL is empty - all API calls are relative to same origin
+  const baseUrl = import.meta.env.VITE_API_URL || "";
   return new Apiclient({
-    baseUrl: "",
+    baseUrl,
     baseApiParams,
   });
 };

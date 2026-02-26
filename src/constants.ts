@@ -15,8 +15,8 @@ export const mode = (import.meta as unknown as WithEnvMode).env.MODE;
 declare const __APP_BASE_PATH__: string;
 export const APP_BASE_PATH = __APP_BASE_PATH__;
 
-// API URL is relative - same origin
-export const API_URL = "";
+// API URL from env var, falls back to same-origin for Vercel proxy
+export const API_URL = import.meta.env.VITE_API_URL || "";
 
 // Legacy exports for compatibility
 export const APP_ID = "gbfs-explorer";
