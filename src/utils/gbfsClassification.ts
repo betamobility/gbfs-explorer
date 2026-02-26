@@ -77,14 +77,23 @@ export function classifyOperatorType(
     availableFeeds.includes(feedName)
   );
   
-  // Classification logic - "prefer stations" policy (for non-scooter systems)
-  if (hasStationFeeds) {
-    // POLICY: If station feeds exist, classify as station-based (unless overridden by scooters above)
+  // Classification logic
+  if (hasStationFeeds && hasVehicleFeeds) {
+    // HYBRID system: has both station and vehicle feeds.
+    // Prefer free_floating — vehicle_status/free_bike_status gives accurate
+    // individual vehicle counts, whereas station_status on virtual-station
+    // operators (e.g. Dott, Lime) double-counts across geofence zones.
+    const vehicleFeedType = VEHICLE_FEED_NAMES.find(feedName =>
+      availableFeeds.includes(feedName)
+    );
+    console.log(`classifyOperatorType (${operatorName}): Hybrid system detected — using ${vehicleFeedType} for accurate counts`);
+    return 'free_floating';
+  } else if (hasStationFeeds) {
+    // Pure station-based (no vehicle feed available)
     console.log(`classifyOperatorType (${operatorName}): Station-based system detected`);
     return 'station_based';
   } else if (hasVehicleFeeds) {
-    // Only classify as free-floating if no station feeds exist
-    const vehicleFeedType = VEHICLE_FEED_NAMES.find(feedName => 
+    const vehicleFeedType = VEHICLE_FEED_NAMES.find(feedName =>
       availableFeeds.includes(feedName)
     );
     console.log(`classifyOperatorType (${operatorName}): Free-floating system detected using ${vehicleFeedType}`);

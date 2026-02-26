@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { getCountryFlagEmoji } from "utils/countryUtils";
 import OperatorCard, { OperatorDisplayData } from "components/OperatorCard";
 import SkeletonOperatorCard from "components/SkeletonOperatorCard";
+import OperatorGlobalView from "components/OperatorGlobalView";
+import { TOP_OPERATORS, OperatorId, isValidOperatorId } from "utils/operatorConfig";
 import { GetGbfsFeedsDataData, GBFSFeed } from "brain/data-contracts";
 
 // Helper to fetch and parse a GBFS feed via proxy, centralizing error handling
@@ -204,6 +206,9 @@ export default function App() {
   const [isLoadingCityResults, setIsLoadingCityResults] = useState<boolean>(false);
   const [operatorDisplayData, setOperatorDisplayData] = useState<Record<string, OperatorDisplayData>>({});
 
+  // --- Operator global view state ---
+  const [activeOperator, setActiveOperator] = useState<OperatorId | null>(null);
+
 
   const DEBOUNCE_DELAY = 300; // 300ms debounce
 
@@ -300,6 +305,21 @@ export default function App() {
   const isEmbedMode = useMemo(() => {
     const params = new URLSearchParams(location.search);
     return params.get("embed") === "true";
+  }, [location.search]);
+
+  // --- Parse ?operator from URL ---
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const operatorParam = params.get("operator");
+
+    if (operatorParam && isValidOperatorId(operatorParam)) {
+      setActiveOperator(operatorParam);
+      // Clear city view when operator is active
+      setActiveCityGroup(null);
+      setOperatorDisplayData({});
+    } else {
+      setActiveOperator(null);
+    }
   }, [location.search]);
 
   // --- Parse ?city from URL and resolve results inline ---
@@ -740,6 +760,36 @@ export default function App() {
               )}
             </CardContent>
         </Card>
+
+        {/* Top Operators Pills */}
+        {!activeCityGroup && !activeOperator && (
+          <div className="w-full max-w-2xl mx-auto -mt-6 mb-8 text-center">
+            <p className="text-xs font-semibold tracking-wider text-muted-foreground uppercase mb-3">Top Operators</p>
+            <div className="flex flex-wrap justify-center gap-2">
+              {TOP_OPERATORS.map(op => (
+                <Button
+                  key={op.id}
+                  variant="outline"
+                  size="sm"
+                  className="rounded-full"
+                  onClick={() => navigate(buildUrl({ operator: op.id }))}
+                >
+                  {op.name}
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Operator Global View */}
+        {activeOperator && (
+          <OperatorGlobalView
+            operatorId={activeOperator}
+            allSystems={allSystems}
+            onCityClick={(city) => navigate(buildUrl({ city }))}
+            onBack={() => navigate(isEmbedMode ? "/?embed=true" : "/")}
+          />
+        )}
 
         {/* Inline Results Display Section */}
         {isLoadingCityResults && (

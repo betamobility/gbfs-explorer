@@ -19,6 +19,10 @@ export default defineConfig({
         changeOrigin: true,
       },
     },
+    hmr: {
+      // Disable overlay to prevent issues when embedded in iframe
+      overlay: false,
+    },
   },
   resolve: {
     alias: {
